@@ -143,7 +143,26 @@ if(WIN32 AND "x${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "x")
     endif()
 	    message(STATUS "Compiler architecture: ${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}")
 endif()
-SET( Boost_USE_STATIC_LIBS ON )
+
+# Ensure the system is running Linux first
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # Read the standard OS identification file
+  if(EXISTS "/etc/os-release")
+    file(READ "/etc/os-release" OS_RELEASE_CONTENT)
+    
+    # 3. Check for "rhel" or "centos" inside the ID fields
+    if(OS_RELEASE_CONTENT MATCHES "ID=\"?rhel\"?" OR OS_RELEASE_CONTENT MATCHES "ID_LIKE=\"?[^\"]*rhel[^\"]*\"?")
+      set(IS_REDHAT TRUE)
+    else()
+      set(IS_REDHAT FALSE)
+    endif()
+  endif()
+endif()
+if (IS_REDHAT) 
+  SET( Boost_USE_STATIC_LIBS OFF )
+else()
+  SET( Boost_USE_STATIC_LIBS ON )
+endif()
 find_package(Boost COMPONENTS unit_test_framework system filesystem)
 #if boost is found enable tests
 IF(Boost_FOUND)
